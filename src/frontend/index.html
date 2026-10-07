@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight AI - Underwriting Intelligence Platform</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Premium Vector Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js for High-Fidelity Animated Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Canvas Confetti for Celebration effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config for Dark Theme Palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        appbg: '#070B14',
+                        cardbg: '#0F172A',
+                        bordercol: 'rgba(255,255,255,0.08)',
+                        pblue: '#4F8BFF',
+                        psuccess: '#00D68F',
+                        pdanger: '#FF5C7A',
+                        pwarning: '#FFB020',
+                        paccent: '#7C5CFC',
+                        textpri: '#FFFFFF',
+                        textsec: '#94A3B8',
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        '20px': '20px',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS Overrides and Animation keyframes -->
+    <style>
+        body {
+            background-color: #070B14;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px) saturate(120%);
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card-glow {
+            position: relative;
+        }
+        
+        .glass-card-glow::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; right: -1px; bottom: -1px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(79,139,255,0.15) 0%, rgba(124,92,252,0.15) 50%, transparent 100%);
+            z-index: -1;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Hover Lift Animations */
+        .hover-lift {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 12px 30px rgba(79, 139, 255, 0.08);
+            border-color: rgba(79, 139, 255, 0.25);
+        }
+
+        /* Sparkline canvas sizing */
+        .sparkline-canvas {
+            width: 80px;
+            height: 30px;
+        }
+
+        /* Noise overlay texture */
+        .noise-texture {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.015;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Animated circular loader */
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        .circular-loader {
+            animation: rotate 1.5s linear infinite;
+        }
+
+        /* Floating background gradients */
+        .bg-glow-1 {
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(79, 139, 255, 0.12) 0%, transparent 70%);
+            top: -100px; right: -50px;
+            pointer-events: none;
+            z-index: -10;
+        }
+        .bg-glow-2 {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(124, 92, 252, 0.08) 0%, transparent 75%);
+            bottom: 100px; left: -100px;
+            pointer-events: none;
+            z-index: -10;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070B14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Risk Heatmap block grids */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(4, 1fr);
+            gap: 6px;
+        }
+        .heatmap-cell {
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body class="bg-appbg text-white select-none">
+    
+    <!-- Noise overlay -->
+    <div class="noise-texture"></div>
+
+    <!-- Floating Background Gradients -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <div class="min-h-screen flex">
+        
+        <!-- ========================================
+             SIDEBAR MENU (Expandable on hover)
+             ======================================== -->
+        <aside id="sidebar" class="fixed left-0 top-0 bottom-0 w-16 hover:w-64 transition-all duration-300 z-50 bg-[#0F172A] border-r border-bordercol flex flex-col justify-between overflow-hidden group">
+            
+            <!-- Sidebar Header / Logo -->
+            <div class="flex flex-col">
+                <div class="h-16 flex items-center px-4 border-b border-bordercol shrink-0 gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-pblue to-paccent flex items-center justify-center shadow-lg shadow-pblue/20">
+                        <i class="fa-solid fa-vault text-white text-sm"></i>
+                    </div>
+                    <span class="font-extrabold text-base tracking-wide text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">FinSight <span class="text-pblue">AI</span></span>
+                </div>
+
+                <!-- Navigation List -->
+                <nav class="mt-6 px-2 space-y-2">
+                    <!-- Portfolio Analytics -->
+                    <button onclick="switchPage('dashboard')" class="nav-item w-full flex items-center h-11 px-3 rounded-xl transition-all duration-200 gap-4 text-pblue bg-pblue/10 font-semibold" data-page="dashboard">
+                        <div class="w-6 flex justify-center shrink-0">
+                            <i class="fa-solid fa-chart-pie text-lg"></i>
+                        </div>
+                        <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Portfolio Analytics</span>
+                    </button>
+                    <!-- Risk Underwriter -->
+                    <button onclick="switchPage('prediction')" class="nav-item w-full flex items-center h-11 px-3 rounded-xl transition-all duration-200 gap-4 text-textsec hover:text-white hover:bg-white/5" data-page="prediction">
+                        <div class="w-6 flex justify-center shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                        </div>
+                        <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Risk Underwriter</span>
+                    </button>
+                    <!-- Loan Portfolio -->
+                    <button onclick="switchPage('portfolio')" class="nav-item w-full flex items-center h-11 px-3 rounded-xl transition-all duration-200 gap-4 text-textsec hover:text-white hover:bg-white/5" data-page="portfolio">
+                        <div class="w-6 flex justify-center shrink-0">
+                            <i class="fa-solid fa-wallet text-lg"></i>
+                        </div>
+                        <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Loan Portfolio</span>
+                    </button>
+                    <!-- Risk Intelligence -->
+                    <button onclick="switchPage('risk_intelligence')" class="nav-item w-full flex items-center h-11 px-3 rounded-xl transition-all duration-200 gap-4 text-textsec hover:text-white hover:bg-white/5" data-page="risk_intelligence">
+                        <div class="w-6 flex justify-center shrink-0">
+                            <i class="fa-solid fa-shield-halved text-lg"></i>
+                        </div>
+                        <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Risk Intelligence</span>
+                    </button>
+                    <!-- Reports Center -->
+                    <button onclick="switchPage('reports')" class="nav-item w-full flex items-center h-11 px-3 rounded-xl transition-all duration-200 gap-4 text-textsec hover:text-white hover:bg-white/5" data-page="reports">
+                        <div class="w-6 flex justify-center shrink-0">
+                            <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                        </div>
+                        <span class="whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">Reports Center</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer / Version Info -->
+            <div class="p-3 border-t border-bordercol">
+                <div class="flex items-center gap-3 px-3">
+                    <div class="w-2 h-2 rounded-full bg-psuccess animate-pulse shrink-0"></div>
+                    <span class="text-[10px] text-textsec font-bold uppercase tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">v2.1.0 Secured</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ========================================
+             MAIN CONTENT WRAPPER
+             ======================================== -->
+        <main class="flex-1 ml-16 bg-[#070B14] min-h-screen text-white font-sans overflow-x-hidden flex flex-col transition-all duration-300">
+            
+            <!-- TOP NAVBAR -->
+            <header class="h-16 border-b border-bordercol bg-[#0F172A]/80 backdrop-blur-md sticky top-0 z-40 px-6 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-4">
+                    <h2 id="page-title" class="font-extrabold text-xl tracking-tight text-white">Portfolio Analytics</h2>
+                    <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pblue/10 border border-pblue/20 text-pblue">
+                        <i class="fa-solid fa-circle-nodes text-[10px]"></i> Portfolio Node Active
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Global Search Bar -->
+                    <div class="relative hidden md:block">
+                        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-textsec">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </div>
+                        <input type="text" onclick="toggleSearchModal(true)" placeholder="Search commands or tabs..." class="w-64 bg-[#070B14]/80 border border-bordercol hover:border-textsec/30 text-white placeholder-textsec text-xs rounded-full pl-9 pr-12 py-2 outline-none transition-all duration-200 cursor-pointer">
+                        <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-[10px] font-bold text-textsec bg-cardbg px-2 py-0.5 my-1.5 rounded-md border border-bordercol">
+                            Ctrl+K
+                        </div>
+                    </div>
+
+                    <!-- Notification Bell -->
+                    <button onclick="triggerToast('Portfolio analytics alerts are healthy.', 'success')" class="w-10 h-10 rounded-full border border-bordercol flex items-center justify-center hover:bg-white/5 text-textsec hover:text-white transition-all duration-250 relative">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-pdanger"></span>
+                    </button>
+
+                    <!-- Profile Photo Avatar -->
+                    <div class="flex items-center gap-3 pl-3 border-l border-bordercol">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pblue to-paccent flex items-center justify-center text-white font-extrabold text-xs shadow-md border border-bordercol">
+                            CM
+                        </div>
+                        <div class="hidden lg:flex flex-col text-left">
+                            <span class="text-xs font-bold leading-tight">Chief Risk Officer</span>
+                            <span class="text-[9px] text-textsec">Credit Risk Operations</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- MAIN CONTAINER WITH GRID / LAYOUTS -->
+            <div id="content-area" class="p-6 md:p-8 flex-1 space-y-8">
+                
+                <!-- ========================================
+                     PAGE: PORTFOLIO ANALYTICS (Landing Dashboard)
+                     ======================================== -->
+                <section id="page-dashboard" class="space-y-8 block">
+                    
+                    <!-- HERO BANNER -->
+                    <div class="relative overflow-hidden glass-card glass-card-glow rounded-[20px] p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 shadow-xl">
+                        <!-- Left text -->
+                        <div class="flex-1 space-y-4 max-w-xl text-left">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-pblue/10 border border-pblue/20 text-pblue">
+                                <i class="fa-solid fa-chart-line"></i> Credit Portfolio Analytics
+                            </span>
+                            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+                                Deep Portfolio Insights & <span class="bg-gradient-to-r from-pblue to-paccent bg-clip-text text-transparent">Risk Intelligence</span>
+                            </h1>
+                            <p class="text-textsec text-sm leading-relaxed max-w-lg">
+                                Real-time indicators of credit quality, application volume vectors, and underwriting recommendations for LendingClub asset pools.
+                            </p>
+                            <div class="pt-4 flex flex-wrap gap-4">
+                                <button onclick="switchPage('prediction')" class="bg-pblue hover:bg-pblue/80 hover-lift text-white font-bold text-sm px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-pblue/20 transition-all">
+                                    Underwrite Applicant <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                                <button onclick="switchPage('portfolio')" class="bg-white/5 hover:bg-white/10 hover-lift text-white font-semibold text-sm px-6 py-3 rounded-full flex items-center gap-2 border border-bordercol transition-all">
+                                    Loan Ledger <i class="fa-solid fa-wallet text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Canvas Particle animation / Floating Credit Cards -->
+                        <div class="relative w-full md:w-80 h-48 md:h-56 shrink-0 flex items-center justify-center overflow-visible">
+                            <!-- Background particles canvas -->
+                            <canvas id="particles-canvas" class="absolute inset-0 w-full h-full pointer-events-none rounded-[20px]"></canvas>
+                            
+                            <!-- Floating Card Graphic -->
+                            <div class="absolute w-56 h-36 bg-gradient-to-tr from-cardbg to-[#1e293b]/70 border border-white/15 rounded-2xl shadow-2xl p-4 flex flex-col justify-between transform -rotate-12 translate-x-[-20px] translate-y-[-10px] animate-[float_4s_ease-in-out_infinite]">
+                                <div class="flex justify-between items-center">
+                                    <div class="w-8 h-6 bg-amber-400/25 border border-amber-400/40 rounded-md"></div>
+                                    <span class="text-white/40 text-[9px] font-bold tracking-wider">PORTFOLIO CODES</span>
+                                </div>
+                                <div class="text-left space-y-1">
+                                    <span class="text-white/30 text-[9px] block">POOL DELINQUENCY RATE</span>
+                                    <span class="text-white text-base font-extrabold tracking-widest">16.01%</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] text-white/50">
+                                    <span>OPERATIONAL</span>
+                                    <i class="fa-brands fa-cc-mastercard text-lg"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute w-44 h-28 bg-gradient-to-tr from-paccent to-[#1e1b4b]/80 border border-white/10 rounded-xl shadow-xl p-3 flex flex-col justify-between transform rotate-6 translate-x-[50px] translate-y-[30px] animate-[float2_4s_ease-in-out_infinite]">
+                                <div class="flex justify-between items-center text-[9px] text-white/60">
+                                    <span>HEALTH INDEX</span>
+                                    <span class="text-psuccess font-bold">OPTIMAL</span>
+                                </div>
+                                <div class="text-left space-y-0.5">
+                                    <span class="text-white/40 text-[8px] block">RECOVERY INDEX</span>
+                                    <span class="text-white text-sm font-bold">78.40%</span>
+                                </div>
+                                <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+                                    <div class="bg-psuccess h-full w-[78%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 1: OVERVIEW METRIC CARDS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        
+                        <!-- Card 1: Applicants -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div class="w-10 h-10 rounded-xl bg-pblue/10 border border-pblue/20 flex items-center justify-center text-pblue">
+                                    <i class="fa-solid fa-users text-base"></i>
+                                </div>
+                                <span class="text-xs font-bold text-psuccess bg-psuccess/10 border border-psuccess/20 px-2 py-0.5 rounded-full">+12.4%</span>
+                            </div>
+                            <div class="mt-4 text-left">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Applicants Pool</span>
+                                <h3 id="stat-applicants" class="text-2xl font-extrabold text-white mt-1">9,578</h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[10px] text-textsec">Total pool</span>
+                                <canvas id="sparkline-1" class="sparkline-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Approval Rate -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div class="w-10 h-10 rounded-xl bg-paccent/10 border border-paccent/20 flex items-center justify-center text-paccent">
+                                    <i class="fa-solid fa-percent text-base"></i>
+                                </div>
+                                <span class="text-xs font-bold text-psuccess bg-psuccess/10 border border-psuccess/20 px-2 py-0.5 rounded-full">+1.2%</span>
+                            </div>
+                            <div class="mt-4 text-left">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Approval Rate</span>
+                                <h3 id="stat-approval-rate" class="text-2xl font-extrabold text-white mt-1">83.99%</h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[10px] text-textsec">Historical approved</span>
+                                <canvas id="sparkline-2" class="sparkline-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Avg FICO -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div class="w-10 h-10 rounded-xl bg-pwarning/10 border border-pwarning/20 flex items-center justify-center text-pwarning">
+                                    <i class="fa-solid fa-award text-base"></i>
+                                </div>
+                                <span class="text-xs font-bold text-textsec bg-white/5 border border-bordercol px-2 py-0.5 rounded-full">Stable</span>
+                            </div>
+                            <div class="mt-4 text-left">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Average FICO</span>
+                                <h3 id="stat-fico" class="text-2xl font-extrabold text-white mt-1">709</h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[10px] text-textsec">Pool credit mean</span>
+                                <canvas id="sparkline-3" class="sparkline-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Avg DTI -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div class="w-10 h-10 rounded-xl bg-pblue/10 border border-pblue/20 flex items-center justify-center text-pblue">
+                                    <i class="fa-solid fa-scale-balanced text-base"></i>
+                                </div>
+                                <span class="text-xs font-bold text-psuccess bg-psuccess/10 border border-psuccess/20 px-2 py-0.5 rounded-full">-0.4%</span>
+                            </div>
+                            <div class="mt-4 text-left">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Average DTI</span>
+                                <h3 id="stat-dti" class="text-2xl font-extrabold text-white mt-1">12.01%</h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[10px] text-textsec">Debt-to-Income leverage</span>
+                                <canvas id="sparkline-4" class="sparkline-canvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Avg Default Rate -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <div class="w-10 h-10 rounded-xl bg-pdanger/10 border border-pdanger/20 flex items-center justify-center text-pdanger">
+                                    <i class="fa-solid fa-circle-exclamation text-base"></i>
+                                </div>
+                                <span class="text-xs font-bold text-pdanger bg-pdanger/10 border border-pdanger/20 px-2 py-0.5 rounded-full">-1.2%</span>
+                            </div>
+                            <div class="mt-4 text-left">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Default Rate</span>
+                                <h3 id="stat-risk" class="text-2xl font-extrabold text-white mt-1">16.01%</h3>
+                            </div>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[10px] text-textsec">Portfolio defaults</span>
+                                <canvas id="sparkline-5" class="sparkline-canvas"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- CHARTS GRID -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Monthly Application Volume Trend -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4 lg:col-span-2">
+                            <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                                <div class="text-left">
+                                    <h3 class="font-extrabold text-lg">Monthly Credit Applications Volume</h3>
+                                    <p class="text-xs text-textsec">Historical trend indicating pipeline inflow changes</p>
+                                </div>
+                                <span class="text-xs text-pblue font-bold bg-pblue/10 border border-pblue/20 px-3 py-1 rounded-lg">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> Inflow Trend
+                                </span>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="inflow-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Risk distribution chart -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                                <div class="text-left">
+                                    <h3 class="font-extrabold text-lg">Credit Risk Distribution</h3>
+                                    <p class="text-xs text-textsec">Percentage of pool matching FICO ranges</p>
+                                </div>
+                            </div>
+                            <div class="h-64 relative flex items-center justify-center">
+                                <canvas id="risk-pie-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM GRID WITH STATS CHARTS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- FICO Stacked Distribution Chart -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                                <div class="text-left">
+                                    <h3 class="font-extrabold text-lg">FICO Score Breakdown</h3>
+                                    <p class="text-xs text-textsec">Underwriting approvals mapping against rating metrics</p>
+                                </div>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="fico-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Purposes and defaults horizontal chart -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                                <div class="text-left">
+                                    <h3 class="font-extrabold text-lg">Credit Purpose Allocation</h3>
+                                    <p class="text-xs text-textsec">Borrower intent volumes against credit loss ratings</p>
+                                </div>
+                            </div>
+                            <div class="h-64 relative">
+                                <canvas id="purpose-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ========================================
+                     PAGE: RISK UNDERWRITER (4-Step Wizard)
+                     ======================================== -->
+                <section id="page-prediction" class="space-y-8 hidden">
+                    
+                    <!-- Wizard Card Wrapper -->
+                    <div class="max-w-4xl mx-auto glass-card glass-card-glow rounded-[20px] p-6 md:p-8">
+                        
+                        <!-- Progress Bar & Indicator -->
+                        <div class="mb-8">
+                            <div class="flex justify-between items-center text-xs font-bold text-textsec uppercase mb-3">
+                                <span>Credit Risk Evaluation Wizard</span>
+                                <span id="wizard-step-label">Step 1 of 4: Applicant Identity</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                                <div id="wizard-progress-bar" class="bg-gradient-to-r from-pblue to-paccent h-full w-[25%] transition-all duration-300"></div>
+                            </div>
+                            <!-- Visual step tags -->
+                            <div class="grid grid-cols-4 mt-4 gap-2 text-center text-[10px] md:text-xs font-bold">
+                                <div id="step-tag-1" class="text-pblue">1. Profile</div>
+                                <div id="step-tag-2" class="text-textsec">2. Financials</div>
+                                <div id="step-tag-3" class="text-textsec">3. Credit Records</div>
+                                <div id="step-tag-4" class="text-textsec">4. Review</div>
+                            </div>
+                        </div>
+
+                        <!-- Step Content Fields Container -->
+                        <form id="wizard-form" onsubmit="event.preventDefault();" class="space-y-6">
+                            
+                            <!-- STEP 1: Applicant Profile -->
+                            <div id="wizard-step-1" class="step-content space-y-6 block text-left">
+                                <h3 class="font-extrabold text-xl border-b border-bordercol pb-3 text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-user text-pblue"></i> Step 1: Borrower Information
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Credit Policy Criteria Met</label>
+                                        <select id="input-credit-policy" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue focus:ring-1 focus:ring-pblue transition duration-200">
+                                            <option value="1">1 - Meets Underwriting Standards</option>
+                                            <option value="0">0 - Does Not Meet Standards</option>
+                                        </select>
+                                        <p class="text-[10px] text-textsec">Determines if LendingClub credit criteria are achieved.</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Primary Loan Purpose</label>
+                                        <select id="input-purpose" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue focus:ring-1 focus:ring-pblue transition duration-200">
+                                            <option value="debt_consolidation">Debt Consolidation</option>
+                                            <option value="credit_card">Credit Card Refinance</option>
+                                            <option value="home_improvement">Home Improvement</option>
+                                            <option value="small_business">Small Business</option>
+                                            <option value="major_purchase">Major Purchase</option>
+                                            <option value="educational">Educational Purposes</option>
+                                            <option value="all_other">All Other Reasons</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Interest Rate (Charged Ratio)</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="range" id="input-int-rate" min="0.05" max="0.25" step="0.005" value="0.12" oninput="document.getElementById('int-rate-val').innerText = (this.value * 100).toFixed(1) + '%';" class="flex-1 accent-pblue">
+                                            <span id="int-rate-val" class="text-sm font-bold text-pblue w-12 text-right">12.0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Monthly Installment Amount ($)</label>
+                                        <input type="number" id="input-installment" min="10" max="1500" value="300" step="10" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue focus:ring-1 focus:ring-pblue transition duration-200">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 2: Income and Leverage -->
+                            <div id="wizard-step-2" class="step-content space-y-6 hidden text-left">
+                                <h3 class="font-extrabold text-xl border-b border-bordercol pb-3 text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-wallet text-paccent"></i> Step 2: Financial Leverages
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Log of Annual Income</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="number" id="input-log-income" min="7.0" max="16.0" value="11.0" step="0.1" oninput="document.getElementById('real-income-val').innerText = '$' + Math.round(Math.exp(this.value)).toLocaleString();" class="flex-1 bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                            <div class="text-xs text-textsec w-24 shrink-0 text-right">
+                                                Income: <span id="real-income-val" class="font-bold text-white">$59,874</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Debt-to-Income Ratio (%)</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="range" id="input-dti" min="0.0" max="35.0" step="0.1" value="12.0" oninput="document.getElementById('dti-val').innerText = parseFloat(this.value).toFixed(1) + '%';" class="flex-1 accent-pblue">
+                                            <span id="dti-val" class="text-sm font-bold text-white w-12 text-right">12.0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Revolving Credit Card Balance ($)</label>
+                                        <input type="number" id="input-revol-bal" min="0" max="1000000" value="10000" step="1000" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 3: Credit History -->
+                            <div id="wizard-step-3" class="step-content space-y-6 hidden text-left">
+                                <h3 class="font-extrabold text-xl border-b border-bordercol pb-3 text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-nodes text-pwarning"></i> Step 3: Historical Credit Indicators
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">FICO Credit score</label>
+                                        <input type="number" id="input-fico" min="500" max="850" value="700" step="5" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                        <p class="text-[10px] text-textsec">Credit score rating (Typically range 300 - 850)</p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Age of Credit File (Days)</label>
+                                        <input type="number" id="input-cr-days" min="100" max="20000" value="4000" step="100" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Revolving Credit Line Utilization (%)</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="range" id="input-revol-util" min="0.0" max="120.0" step="0.5" value="40.0" oninput="document.getElementById('revol-util-val').innerText = parseFloat(this.value).toFixed(1) + '%';" class="flex-1 accent-pblue">
+                                            <span id="revol-util-val" class="text-sm font-bold text-white w-12 text-right">40.0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Inquiries in last 6 Months</label>
+                                        <input type="number" id="input-inq" min="0" max="40" value="1" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Missed Payments in 2 Years (30+ Days)</label>
+                                        <input type="number" id="input-delinq" min="0" max="20" value="0" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-semibold text-textsec">Public Derogatory Filings (Bankruptcies)</label>
+                                        <input type="number" id="input-pub-rec" min="0" max="10" value="0" class="w-full bg-cardbg border border-bordercol text-white rounded-xl px-4 py-3 outline-none focus:border-pblue transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 4: Review Summary -->
+                            <div id="wizard-step-4" class="step-content space-y-6 hidden text-left">
+                                <h3 class="font-extrabold text-xl border-b border-bordercol pb-3 text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-psuccess"></i> Step 4: Verification Review
+                                </h3>
+                                <p class="text-xs text-textsec">Ensure all credit application parameters are entered accurately before invoking default models.</p>
+                                
+                                <div class="bg-cardbg rounded-xl border border-bordercol overflow-hidden">
+                                    <table class="w-full text-xs text-left">
+                                        <thead class="bg-white/5 font-bold border-b border-bordercol text-textsec uppercase">
+                                            <tr>
+                                                <th class="p-3">Variable Profile Key</th>
+                                                <th class="p-3">Input Application Data</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-bordercol text-white/90">
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Standard Credit Policy Met</td>
+                                                <td id="rev-policy" class="p-3 font-bold">1 (Yes)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Borrower Purpose</td>
+                                                <td id="rev-purpose" class="p-3 font-bold">Debt Consolidation</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Assigned Interest Rate</td>
+                                                <td id="rev-rate" class="p-3 font-bold">12.0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Monthly Installment Payment</td>
+                                                <td id="rev-installment" class="p-3 font-bold">$300</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Annual Income Equivalence</td>
+                                                <td id="rev-income" class="p-3 font-bold">$59,874</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Debt-to-Income (DTI)</td>
+                                                <td id="rev-dti" class="p-3 font-bold">12.0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">FICO Rating Score</td>
+                                                <td id="rev-fico" class="p-3 font-bold">700</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-semibold text-textsec">Revolving utilization</td>
+                                                <td id="rev-util" class="p-3 font-bold">40.0%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Navigation buttons -->
+                            <div class="flex justify-between items-center border-t border-bordercol pt-6 mt-8">
+                                <button type="button" id="wizard-btn-prev" onclick="wizardPrev()" class="bg-white/5 border border-bordercol hover:bg-white/10 hover-lift text-white font-bold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 invisible transition-all">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i> Back
+                                </button>
+                                <button type="button" id="wizard-btn-next" onclick="wizardNext()" class="bg-pblue hover:bg-pblue/80 hover-lift text-white font-bold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 transition-all">
+                                    Next <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- PREDICTION SKELETON LOADER -->
+                    <div id="prediction-skeleton" class="max-w-4xl mx-auto glass-card rounded-[20px] p-6 space-y-6 hidden animate-pulse">
+                        <div class="h-6 w-1/3 bg-white/10 rounded-md"></div>
+                        <div class="h-24 bg-white/5 rounded-xl"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="h-20 bg-white/5 rounded-xl"></div>
+                            <div class="h-20 bg-white/5 rounded-xl"></div>
+                        </div>
+                        <div class="h-10 bg-white/10 rounded-full w-48 mx-auto"></div>
+                    </div>
+
+                    <!-- PREDICTION RESULT CARD -->
+                    <div id="prediction-result" class="max-w-4xl mx-auto glass-card glass-card-glow rounded-[20px] p-6 md:p-8 space-y-8 hidden">
+                        <!-- Result Header block -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-bordercol pb-4 gap-4 text-left">
+                            <div>
+                                <h3 class="font-extrabold text-xl text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-file-invoice-dollar text-pblue"></i> AI Credit Underwriting Report
+                                </h3>
+                                <p class="text-xs text-textsec">Inference response computed from optimized ML pipeline models</p>
+                            </div>
+                            <span id="result-badge" class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-psuccess/15 border border-psuccess/30 text-psuccess">LOW RISK</span>
+                        </div>
+
+                        <!-- Result numbers summary grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                            <!-- Circular Risk Ring -->
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="relative w-36 h-36 flex items-center justify-center">
+                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent"/>
+                                        <circle id="risk-circle-fill" cx="50" cy="50" r="40" stroke="#00D68F" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="200" fill="transparent" class="transition-all duration-1000 ease-out"/>
+                                    </svg>
+                                    <div class="absolute flex flex-col items-center">
+                                        <span id="risk-prob-percent" class="text-2xl font-extrabold">20.4%</span>
+                                        <span class="text-[8px] font-bold text-textsec uppercase">Default Prob</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-textsec">Risk Classification Scale</span>
+                            </div>
+
+                            <!-- Circular Confidence Ring -->
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="relative w-36 h-36 flex items-center justify-center">
+                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent"/>
+                                        <circle id="confidence-circle-fill" cx="50" cy="50" r="40" stroke="#4F8BFF" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="100" fill="transparent" class="transition-all duration-1000 ease-out"/>
+                                    </svg>
+                                    <div class="absolute flex flex-col items-center">
+                                        <span id="confidence-percent" class="text-2xl font-extrabold">79.6%</span>
+                                        <span class="text-[8px] font-bold text-textsec uppercase">Confidence</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-textsec">Model Prediction Confidence</span>
+                            </div>
+
+                            <!-- Quick Stats Decision box -->
+                            <div class="text-left space-y-4">
+                                <div class="bg-white/5 rounded-2xl border border-bordercol p-4">
+                                    <span class="text-[9px] font-bold text-textsec uppercase tracking-wider block">Decision Outcome</span>
+                                    <h4 id="result-decision" class="text-2xl font-extrabold text-psuccess mt-1">APPROVED</h4>
+                                    <p class="text-xs text-textsec mt-1">Pass applicant to auto direct-debit verifications.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations and Key features contributions -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left border-t border-bordercol pt-6">
+                            <div>
+                                <h4 class="font-bold text-sm text-white mb-3"><i class="fa-solid fa-list-check text-pblue"></i> Suggested Underwriting Actions</h4>
+                                <ul id="result-actions" class="space-y-2 text-xs text-textsec">
+                                    <li><i class="fa-solid fa-circle-check text-psuccess mr-2"></i> Approve standard risk-adjusted rates.</li>
+                                    <li><i class="fa-solid fa-circle-check text-psuccess mr-2"></i> Pass applicant to auto verifications.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white mb-3"><i class="fa-solid fa-sliders text-paccent"></i> Key Feature Contributions</h4>
+                                <ul id="result-factors" class="space-y-2 text-xs text-textsec">
+                                    <li><i class="fa-solid fa-circle-exclamation text-pwarning mr-2"></i> FICO score is higher than pool average.</li>
+                                    <li><i class="fa-solid fa-circle-exclamation text-pwarning mr-2"></i> DTI ratio falls below maximum boundaries.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Export asset controls -->
+                        <div class="flex flex-col sm:flex-row gap-4 border-t border-bordercol pt-6">
+                            <button onclick="downloadReport('pdf')" class="flex-1 bg-white/5 border border-bordercol hover:bg-white/10 hover-lift text-white font-bold text-xs py-3 rounded-full flex items-center justify-center gap-2 transition-all">
+                                <i class="fa-regular fa-file-pdf text-pdanger text-sm"></i> Download PDF Underwriting Report
+                            </button>
+                            <button onclick="downloadReport('csv')" class="flex-1 bg-white/5 border border-bordercol hover:bg-white/10 hover-lift text-white font-bold text-xs py-3 rounded-full flex items-center justify-center gap-2 transition-all">
+                                <i class="fa-regular fa-file-excel text-psuccess text-sm"></i> Download CSV Summary Log
+                            </button>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ========================================
+                     PAGE: LOAN PORTFOLIO
+                     ======================================== -->
+                <section id="page-portfolio" class="space-y-8 hidden">
+                    
+                    <!-- Portfolio Stats Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Total Loan Value -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 text-left flex flex-col justify-between">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider">Total Loan Value</span>
+                                <i class="fa-solid fa-money-bill-trend-up text-pblue text-sm"></i>
+                            </div>
+                            <div class="my-4">
+                                <h3 id="port-total-value" class="text-3xl font-extrabold text-white">$142,500,000</h3>
+                                <p class="text-[10px] text-textsec mt-1">Total committed principal ledger</p>
+                            </div>
+                        </div>
+
+                        <!-- Outstanding Amount -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 text-left flex flex-col justify-between">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider">Outstanding Principal</span>
+                                <i class="fa-solid fa-hand-holding-dollar text-pwarning text-sm"></i>
+                            </div>
+                            <div class="my-4">
+                                <h3 id="port-outstanding" class="text-3xl font-extrabold text-white">$98,400,000</h3>
+                                <p class="text-[10px] text-textsec mt-1">Outstanding active credit balance</p>
+                            </div>
+                        </div>
+
+                        <!-- Expected Revenue -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 text-left flex flex-col justify-between">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider">Expected Revenue</span>
+                                <i class="fa-solid fa-coins text-paccent text-sm"></i>
+                            </div>
+                            <div class="my-4">
+                                <h3 id="port-revenue" class="text-3xl font-extrabold text-white">$18,200,000</h3>
+                                <p class="text-[10px] text-textsec mt-1">Calculated interest yield returns</p>
+                            </div>
+                        </div>
+
+                        <!-- Recovery Index -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 text-left flex flex-col justify-between">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-textsec uppercase tracking-wider">Default Recovery Rate</span>
+                                <i class="fa-solid fa-shield-heart text-psuccess text-sm"></i>
+                            </div>
+                            <div class="my-4 flex items-center justify-between">
+                                <div>
+                                    <h3 id="port-recovery" class="text-3xl font-extrabold text-white">78.4%</h3>
+                                    <p class="text-[10px] text-textsec mt-1">Default collateral collections</p>
+                                </div>
+                                <div class="w-12 h-12 relative flex items-center justify-center shrink-0">
+                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"/>
+                                        <circle cx="18" cy="18" r="16" fill="none" stroke="#00D68F" stroke-width="3" stroke-dasharray="100" stroke-dashoffset="22" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
+                        <!-- Active Loans status -->
+                        <div class="glass-card rounded-[20px] p-6 flex flex-col justify-between space-y-4">
+                            <h4 class="font-bold text-sm text-textsec uppercase tracking-wider">Portfolio Health Index</h4>
+                            
+                            <div class="flex items-center justify-center my-4">
+                                <div class="relative w-40 h-40 flex items-center justify-center">
+                                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.05)" stroke-width="6" fill="none"/>
+                                        <circle cx="50" cy="50" r="42" stroke="#4F8BFF" stroke-width="6" stroke-dasharray="263.89" stroke-dashoffset="21.1" stroke-linecap="round" fill="none"/>
+                                    </svg>
+                                    <div class="absolute flex flex-col items-center">
+                                        <span class="text-3xl font-extrabold">92/100</span>
+                                        <span class="text-[9px] text-textsec font-bold uppercase tracking-wider">Health Index</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 border-t border-bordercol pt-4 text-xs">
+                                <div>
+                                    <span class="text-textsec">Active Loans:</span>
+                                    <div class="font-extrabold text-base text-white mt-0.5">7,420</div>
+                                </div>
+                                <div>
+                                    <span class="text-textsec">Closed / Settled:</span>
+                                    <div class="font-extrabold text-base text-white mt-0.5">2,158</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Default exposure details -->
+                        <div class="glass-card rounded-[20px] p-6 lg:col-span-2 flex flex-col justify-between space-y-6">
+                            <div>
+                                <h4 class="font-bold text-sm text-textsec uppercase tracking-wider">Default exposure monitoring</h4>
+                                <p class="text-xs text-textsec mt-1">Outstanding write-offs and default risk coverage indicators</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-textsec">Outstanding Default Exposure</span>
+                                        <span class="text-pdanger font-bold">$4,200,000 (2.95%)</span>
+                                    </div>
+                                    <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-pdanger h-full w-[2.95%]"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-textsec">Collateralized Cash Reserves</span>
+                                        <span class="text-psuccess font-bold">$12,000,000 (8.42%)</span>
+                                    </div>
+                                    <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-psuccess h-full w-[8.42%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 border border-bordercol rounded-xl p-4 text-xs text-textsec leading-relaxed">
+                                <i class="fa-solid fa-circle-info text-pblue mr-1.5"></i> <b>Portfolio Security status:</b> Our dynamic credit reserves exceed the default exposure of the portfolio by <b>$7.80M</b>, providing high security buffers in compliance with institutional underwriting policies.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ledger Table -->
+                    <div class="glass-card rounded-[20px] p-6 text-left space-y-4">
+                        <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                            <div>
+                                <h3 class="font-extrabold text-lg">Active Portfolio Ledger</h3>
+                                <p class="text-xs text-textsec">Recent applicant allocations processed by credit desk</p>
+                            </div>
+                            <button onclick="triggerToast('Active ledger synchronized.', 'info')" class="text-xs text-textsec hover:text-white bg-white/5 border border-bordercol px-3 py-1.5 rounded-lg">
+                                <i class="fa-solid fa-arrows-rotate"></i> Sync ledger
+                            </button>
+                        </div>
+
+                        <div class="bg-cardbg rounded-xl border border-bordercol overflow-hidden">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-white/5 font-bold border-b border-bordercol text-textsec uppercase">
+                                    <tr>
+                                        <th class="p-3">Loan ID</th>
+                                        <th class="p-3">Borrower Name</th>
+                                        <th class="p-3">FICO</th>
+                                        <th class="p-3">Principal Amount</th>
+                                        <th class="p-3">Credit Purpose</th>
+                                        <th class="p-3">Operational Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-bordercol text-white/90">
+                                    <tr>
+                                        <td class="p-3 font-semibold text-pblue">LN-4029</td>
+                                        <td class="p-3 font-bold">Alice Vance</td>
+                                        <td class="p-3">745</td>
+                                        <td class="p-3 font-bold">$25,000</td>
+                                        <td class="p-3 text-textsec">Refinancing</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-psuccess/15 border border-psuccess/20 text-psuccess text-[9px] font-bold">ACTIVE</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-semibold text-pblue">LN-3158</td>
+                                        <td class="p-3 font-bold">Marcus Chen</td>
+                                        <td class="p-3">680</td>
+                                        <td class="p-3 font-bold">$12,500</td>
+                                        <td class="p-3 text-textsec">Debt Consolidation</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-psuccess/15 border border-psuccess/20 text-psuccess text-[9px] font-bold">ACTIVE</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-semibold text-pblue">LN-2917</td>
+                                        <td class="p-3 font-bold">Sophia Rossi</td>
+                                        <td class="p-3">715</td>
+                                        <td class="p-3 font-bold">$40,000</td>
+                                        <td class="p-3 text-textsec">Home Improvement</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-pwarning/15 border border-pwarning/20 text-pwarning text-[9px] font-bold">MISSED PAYMENT</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 font-semibold text-pblue">LN-1052</td>
+                                        <td class="p-3 font-bold">Robert Miller</td>
+                                        <td class="p-3">630</td>
+                                        <td class="p-3 font-bold">$15,000</td>
+                                        <td class="p-3 text-textsec">Small Business</td>
+                                        <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/20 text-[#3b82f6] text-[9px] font-bold">FULLY REPAID</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ========================================
+                     PAGE: RISK INTELLIGENCE (Heatmap & Alerts)
+                     ======================================== -->
+                <section id="page-risk_intelligence" class="space-y-8 hidden">
+                    
+                    <!-- Risk segment distribution metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        
+                        <!-- High Risk -->
+                        <div class="glass-card rounded-[20px] p-6 border-l-4 border-l-pdanger">
+                            <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">High-Risk Borrowers</span>
+                            <div class="flex justify-between items-baseline mt-2">
+                                <h3 class="text-3xl font-extrabold text-white">1,532</h3>
+                                <span class="text-xs font-bold text-pdanger bg-pdanger/10 px-2 py-0.5 rounded-full">16.0% of pool</span>
+                            </div>
+                        </div>
+
+                        <!-- Medium Risk -->
+                        <div class="glass-card rounded-[20px] p-6 border-l-4 border-l-pwarning">
+                            <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Medium-Risk Borrowers</span>
+                            <div class="flex justify-between items-baseline mt-2">
+                                <h3 class="text-3xl font-extrabold text-white">3,248</h3>
+                                <span class="text-xs font-bold text-pwarning bg-pwarning/10 px-2 py-0.5 rounded-full">33.9% of pool</span>
+                            </div>
+                        </div>
+
+                        <!-- Low Risk -->
+                        <div class="glass-card rounded-[20px] p-6 border-l-4 border-l-psuccess">
+                            <span class="text-[10px] font-bold text-textsec uppercase tracking-wider block">Low-Risk Borrowers</span>
+                            <div class="flex justify-between items-baseline mt-2">
+                                <h3 class="text-3xl font-extrabold text-white">4,798</h3>
+                                <span class="text-xs font-bold text-psuccess bg-psuccess/10 px-2 py-0.5 rounded-full">50.1% of pool</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+                        
+                        <!-- Heatmap Card -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4">
+                            <div>
+                                <h3 class="font-extrabold text-lg">Underwriting Risk Heatmap</h3>
+                                <p class="text-xs text-textsec mt-1">Cross-matrix modeling borrower FICO scores against Debt-to-Income (DTI) ranges</p>
+                            </div>
+
+                            <div class="space-y-4 pt-2">
+                                <div class="heatmap-grid text-[9px] font-bold text-textsec text-center items-center">
+                                    <span>FICO / DTI</span>
+                                    <span>&lt; 10%</span>
+                                    <span>10% - 20%</span>
+                                    <span>20% - 30%</span>
+                                    <span>&gt; 30%</span>
+                                </div>
+
+                                <div class="heatmap-grid items-center">
+                                    <span class="text-[10px] font-bold text-textsec text-center">&lt; 640</span>
+                                    <div class="heatmap-cell bg-pdanger/30 border border-pdanger/50 text-pdanger shadow-lg shadow-pdanger/10">84.2%</div>
+                                    <div class="heatmap-cell bg-pdanger/35 border border-pdanger/60 text-pdanger shadow-lg shadow-pdanger/10">89.6%</div>
+                                    <div class="heatmap-cell bg-pdanger/40 border border-pdanger/70 text-pdanger shadow-lg shadow-pdanger/10">92.4%</div>
+                                    <div class="heatmap-cell bg-pdanger/50 border border-pdanger/90 text-pdanger shadow-lg shadow-pdanger/10">98.1%</div>
+                                </div>
+
+                                <div class="heatmap-grid items-center">
+                                    <span class="text-[10px] font-bold text-textsec text-center">640 - 680</span>
+                                    <div class="heatmap-cell bg-pwarning/20 border border-pwarning/40 text-pwarning">32.4%</div>
+                                    <div class="heatmap-cell bg-pwarning/30 border border-pwarning/50 text-pwarning">45.0%</div>
+                                    <div class="heatmap-cell bg-pdanger/20 border border-pdanger/40 text-pdanger">58.2%</div>
+                                    <div class="heatmap-cell bg-pdanger/30 border border-pdanger/50 text-pdanger shadow-lg shadow-pdanger/10">72.4%</div>
+                                </div>
+
+                                <div class="heatmap-grid items-center">
+                                    <span class="text-[10px] font-bold text-textsec text-center">680 - 720</span>
+                                    <div class="heatmap-cell bg-psuccess/15 border border-psuccess/30 text-psuccess">12.1%</div>
+                                    <div class="heatmap-cell bg-psuccess/20 border border-psuccess/40 text-psuccess">15.5%</div>
+                                    <div class="heatmap-cell bg-pwarning/15 border border-pwarning/30 text-pwarning">24.6%</div>
+                                    <div class="heatmap-cell bg-pwarning/25 border border-pwarning/45 text-pwarning">38.9%</div>
+                                </div>
+
+                                <div class="heatmap-grid items-center">
+                                    <span class="text-[10px] font-bold text-textsec text-center">&gt; 720</span>
+                                    <div class="heatmap-cell bg-psuccess/10 border border-psuccess/20 text-psuccess">2.4%</div>
+                                    <div class="heatmap-cell bg-psuccess/15 border border-psuccess/30 text-psuccess">4.8%</div>
+                                    <div class="heatmap-cell bg-psuccess/20 border border-psuccess/40 text-psuccess">8.5%</div>
+                                    <div class="heatmap-cell bg-pwarning/15 border border-pwarning/30 text-pwarning">14.2%</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-center gap-6 pt-2 text-[9px] text-textsec font-bold">
+                                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-psuccess/20 border border-psuccess/40 rounded"></span> Safe (&lt; 20%)</span>
+                                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-pwarning/20 border border-pwarning/40 rounded"></span> Warning (20% - 50%)</span>
+                                <span class="flex items-center gap-1"><span class="w-3 h-3 bg-pdanger/30 border border-pdanger/50 rounded"></span> Critical (&gt; 50%)</span>
+                            </div>
+                        </div>
+
+                        <!-- Active Financial Risk Alerts -->
+                        <div class="glass-card rounded-[20px] p-6 space-y-4">
+                            <div>
+                                <h3 class="font-extrabold text-lg">Financial Portfolio Risk Alerts</h3>
+                                <p class="text-xs text-textsec mt-1">Live alerts regarding default signals in committed credit assets</p>
+                            </div>
+                            
+                            <div id="risk-alerts-container" class="space-y-3 pt-2">
+                                <!-- Dynamic alerts will load here -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Explainable AI default factors -->
+                    <div class="glass-card rounded-[20px] p-6 text-left space-y-6">
+                        <div class="border-b border-bordercol pb-4">
+                            <h3 class="font-extrabold text-xl">Explainable AI Credit Risk Factors</h3>
+                            <p class="text-xs text-textsec mt-1">Key drivers of borrower default classifications extracted from the underwriting model</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="space-y-3">
+                                <div class="w-8 h-8 rounded-lg bg-pblue/10 border border-pblue/20 flex items-center justify-center text-pblue">
+                                    <i class="fa-solid fa-gauge"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">FICO Credit score Rating</h4>
+                                <p class="text-xs text-textsec leading-relaxed">FICO ratings below 660 increase default probabilities exponentially, accounting for a high percentage of model decisions.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="w-8 h-8 rounded-lg bg-paccent/10 border border-paccent/20 flex items-center justify-center text-paccent">
+                                    <i class="fa-solid fa-scale-balanced"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Debt-to-Income (DTI) Leverage</h4>
+                                <p class="text-xs text-textsec leading-relaxed">High DTI scores reflect borrowers spending a substantial portion of monthly earnings servicing debts, causing systemic repayment warnings.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="w-8 h-8 rounded-lg bg-pwarning/10 border border-pwarning/20 flex items-center justify-center text-pwarning">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Revolving Card Utilization</h4>
+                                <p class="text-xs text-textsec leading-relaxed">Card line utilization rates above 60% are flagged as high risk indicators, showing borrowers leaning heavily on lines of credit.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ========================================
+                     PAGE: REPORTS CENTER (History logs & exports)
+                     ======================================== -->
+                <section id="page-reports" class="space-y-8 hidden">
+                    
+                    <!-- Report creation widgets -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        <!-- Loan report -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-pblue/10 border border-pblue/20 flex items-center justify-center text-pblue">
+                                <i class="fa-regular fa-file-pdf text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Committed Portfolio Summary</h4>
+                                <p class="text-xs text-textsec mt-1">Generates an institutional PDF report containing outstanding principal ledger charts.</p>
+                            </div>
+                            <button onclick="triggerToast('Generating loan portfolio pdf report...', 'info')" class="w-full bg-white/5 border border-bordercol hover:bg-white/10 text-white font-bold text-xs py-2 rounded-full transition">
+                                <i class="fa-solid fa-download"></i> Generate PDF Report
+                            </button>
+                        </div>
+
+                        <!-- Applicant export -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-paccent/10 border border-paccent/20 flex items-center justify-center text-paccent">
+                                <i class="fa-regular fa-file-excel text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Applicant underwriting logs</h4>
+                                <p class="text-xs text-textsec mt-1">Exports all underwriting decisions, inputs, and risk indicators as a structured CSV document.</p>
+                            </div>
+                            <button onclick="triggerToast('Generating applicant underwriting log csv...', 'info')" class="w-full bg-white/5 border border-bordercol hover:bg-white/10 text-white font-bold text-xs py-2 rounded-full transition">
+                                <i class="fa-solid fa-download"></i> Export CSV Summary
+                            </button>
+                        </div>
+
+                        <!-- Analytics summary -->
+                        <div class="glass-card hover-lift rounded-[20px] p-6 space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-pwarning/10 border border-pwarning/20 flex items-center justify-center text-pwarning">
+                                <i class="fa-solid fa-chart-line text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Interactive Analytics Dump</h4>
+                                <p class="text-xs text-textsec mt-1">Extracts monthly application inflows, delinquency charts data and FICO allocations into a unified JSON container.</p>
+                            </div>
+                            <button onclick="triggerToast('Exporting analytics charts datasets...', 'info')" class="w-full bg-white/5 border border-bordercol hover:bg-white/10 text-white font-bold text-xs py-2 rounded-full transition">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> Export Analytics JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Underwriting History audit log table -->
+                    <div class="glass-card rounded-[20px] p-6 text-left space-y-4">
+                        <div class="flex justify-between items-center border-b border-bordercol pb-4">
+                            <div>
+                                <h3 class="font-extrabold text-lg">Inference Prediction Audit History Log</h3>
+                                <p class="text-xs text-textsec">Audit record of credit applications evaluated during the active session</p>
+                            </div>
+                            <button onclick="loadPredictionHistory()" class="text-xs text-textsec hover:text-white bg-white/5 border border-bordercol px-3 py-1.5 rounded-lg">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh Audit Log
+                            </button>
+                        </div>
+
+                        <div class="bg-cardbg rounded-xl border border-bordercol overflow-hidden">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-white/5 font-bold border-b border-bordercol text-textsec uppercase">
+                                    <tr>
+                                        <th class="p-3">Timestamp</th>
+                                        <th class="p-3">Applicant ID</th>
+                                        <th class="p-3">FICO Rating</th>
+                                        <th class="p-3">DTI Ratio</th>
+                                        <th class="p-3">Loan Purpose</th>
+                                        <th class="p-3">Risk Category</th>
+                                        <th class="p-3">Decision</th>
+                                        <th class="p-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body" class="divide-y divide-bordercol text-white/90">
+                                    <!-- Dynamic prediction audit rows loaded from api -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================
+         GLOBAL SEARCH / COMMAND PALETTE MODAL
+         ======================================== -->
+    <div id="search-modal" class="fixed inset-0 z-50 bg-[#070B14]/80 backdrop-blur-sm hidden items-start justify-center pt-24 px-4">
+        <div class="w-full max-w-xl glass-card rounded-[20px] shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-transform duration-300">
+            <!-- Search header -->
+            <div class="p-4 border-b border-bordercol flex items-center gap-3">
+                <i class="fa-solid fa-magnifying-glass text-textsec"></i>
+                <input type="text" id="search-input" oninput="filterSearch()" placeholder="Search dashboard pages, run actions..." class="flex-1 bg-transparent text-white text-sm outline-none placeholder-textsec">
+                <button onclick="toggleSearchModal(false)" class="text-textsec hover:text-white text-xs bg-white/5 border border-bordercol px-2.5 py-1 rounded-md">ESC</button>
+            </div>
+            <!-- Search Results list -->
+            <div id="search-results" class="p-2 max-h-80 overflow-y-auto space-y-1 text-left">
+                <!-- Result items will be generated here -->
+            </div>
+            <!-- Shortcut guide -->
+            <div class="p-3 bg-cardbg border-t border-bordercol text-[10px] text-textsec flex justify-between">
+                <span>Use arrows to navigate, Enter to select</span>
+                <span>Type Escape to close</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         TOAST NOTIFICATIONS WRAPPER
+         ======================================== -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <!-- Toast elements dynamically injected here -->
+    </div>
+
+    <!-- ========================================
+         JAVASCRIPT LOGIC / CONTROLLER
+         ======================================== -->
+    <script>
+        // API Configuration templated dynamically by app.py
+        const API_PORT = "{{API_PORT}}";
+        const API_BASE = `http://127.0.0.1:${API_PORT}/api`;
+
+        // Active page state
+        let currentPage = 'dashboard';
+        
+        // Active Wizard steps (1 to 4)
+        let wizardStep = 1;
+        
+        // Active prediction outputs cached for report downloads
+        let lastPredictionResult = null;
+
+        // Interactive Chart instances
+        let inflowChartInstance = null;
+        let riskPieChartInstance = null;
+        let ficoChartInstance = null;
+        let purposeChartInstance = null;
+
+        // Command Palette action lists
+        const searchActions = [
+            { title: "Portfolio Analytics Dashboard", category: "Navigation", icon: "fa-chart-pie", action: () => switchPage('dashboard') },
+            { title: "Risk Underwriting Desk", category: "Navigation", icon: "fa-wand-magic-sparkles", action: () => switchPage('prediction') },
+            { title: "Loan Portfolio Ledger", category: "Navigation", icon: "fa-wallet", action: () => switchPage('portfolio') },
+            { title: "Risk Intelligence Center", category: "Navigation", icon: "fa-shield-halved", action: () => switchPage('risk_intelligence') },
+            { title: "Reports & Audit Logs", category: "Navigation", icon: "fa-file-invoice-dollar", action: () => switchPage('reports') },
+            { title: "Trigger Approval Confetti", category: "Developer", icon: "fa-gift", action: () => triggerSuccessConfetti() }
+        ];
+
+        // Bootstrapping the page components
+        window.addEventListener('DOMContentLoaded', () => {
+            initBackgroundParticles();
+            fetchDashboardData();
+            fetchPortfolioData();
+            fetchRiskAlerts();
+            loadPredictionHistory();
+            renderSparklines();
+            
+            // Register Keyboard Shortcuts
+            window.addEventListener('keydown', (e) => {
+                // Ctrl+K or Cmd+K to open Search Modal
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    toggleSearchModal(true);
+                }
+                // Escape key to close Search Modal
+                if (e.key === 'Escape') {
+                    toggleSearchModal(false);
+                }
+            });
+        });
+
+        // Trigger Success Celebration Confetti
+        function triggerSuccessConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#4F8BFF', '#7C5CFC', '#00D68F']
+            });
+        }
+
+        // Navigation Switcher
+        function switchPage(pageId) {
+            currentPage = pageId;
+            
+            // Toggle Section displays
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('block');
+            });
+            const targetSec = document.getElementById(`page-${pageId}`);
+            if (targetSec) {
+                targetSec.classList.remove('hidden');
+                targetSec.classList.add('block');
+            }
+
+            // Update Page Titles
+            const titleMap = {
+                'dashboard': 'Portfolio Analytics',
+                'prediction': 'Automated Risk Underwriter',
+                'portfolio': 'Active Loan Portfolio',
+                'risk_intelligence': 'Portfolio Risk Intelligence',
+                'reports': 'Reports & Audit Logs'
+            };
+            document.getElementById('page-title').innerText = titleMap[pageId] || 'FinSight AI';
+
+            // Update active menu markers
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const pageAttr = item.getAttribute('data-page');
+                if (pageAttr === pageId) {
+                    item.classList.add('text-pblue', 'bg-pblue/10', 'font-semibold');
+                    item.classList.remove('text-textsec', 'hover:text-white', 'hover:bg-white/5');
+                } else {
+                    item.classList.remove('text-pblue', 'bg-pblue/10', 'font-semibold');
+                    item.classList.add('text-textsec', 'hover:text-white', 'hover:bg-white/5');
+                }
+            });
+
+            // Reload relevant page resources
+            if (pageId === 'reports') {
+                loadPredictionHistory();
+            } else if (pageId === 'portfolio') {
+                fetchPortfolioData();
+            } else if (pageId === 'risk_intelligence') {
+                fetchRiskAlerts();
+            }
+            
+            toggleSearchModal(false);
+        }
+
+        // Search Palette controls
+        function toggleSearchModal(show) {
+            const modal = document.getElementById('search-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-input').focus();
+                filterSearch();
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function filterSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const container = document.getElementById('search-results');
+            container.innerHTML = '';
+
+            const filtered = searchActions.filter(act => 
+                act.title.toLowerCase().includes(query) || act.category.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-4 text-xs text-textsec text-center">No actions found for "${query}"</div>`;
+                return;
+            }
+
+            filtered.forEach((act, idx) => {
+                const item = document.createElement('button');
+                item.className = "w-full flex items-center justify-between p-3 rounded-xl hover:bg-pblue/10 text-left transition text-xs";
+                item.onclick = act.action;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-cardbg flex items-center justify-center border border-bordercol text-textsec">
+                            <i class="fa-solid ${act.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white">${act.title}</div>
+                            <div class="text-[10px] text-textsec">${act.category}</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-textsec"></i>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Notification Toasts helper
+        function triggerToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "glass-card p-4 rounded-xl flex items-center gap-3 shadow-2xl border-l-4 transform translate-y-2 opacity-0 transition-all duration-300 max-w-sm";
+            
+            const colorMap = {
+                'success': 'border-l-psuccess text-psuccess',
+                'error': 'border-l-pdanger text-pdanger',
+                'warning': 'border-l-pwarning text-pwarning',
+                'info': 'border-l-pblue text-pblue'
+            };
+            toast.className += ` ${colorMap[type] || 'border-l-pblue'}`;
+
+            const iconMap = {
+                'success': 'fa-circle-check',
+                'error': 'fa-circle-xmark',
+                'warning': 'fa-triangle-exclamation',
+                'info': 'fa-circle-info'
+            };
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${iconMap[type] || 'fa-circle-info'} text-lg"></i>
+                <div class="text-xs text-white/90 text-left font-medium leading-relaxed">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // animate slide up
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            // remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Canvas Particle Background on Hero
+        function initBackgroundParticles() {
+            const canvas = document.getElementById('particles-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            let particles = [];
+            const particleCount = 45;
+
+            function resizeCanvas() {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.r = Math.random() * 2.5 + 1;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                    if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(79, 139, 255, 0.25)';
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw connection lines
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                        if (dist < 80) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(124, 92, 252, ${0.15 * (1 - dist/80)})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Render miniature trend sparkline canvas
+        function renderSparklines() {
+            const dataPoints = [
+                [10, 15, 8, 20, 18, 30, 24],
+                [80, 81, 82, 81.5, 83, 83.8, 83.99],
+                [690, 695, 700, 705, 704, 707, 709],
+                [13, 12.8, 12.5, 12.3, 12.2, 12.08, 12.01],
+                [18, 17.5, 17.1, 16.8, 16.5, 16.2, 16.01]
+            ];
+            
+            dataPoints.forEach((pts, idx) => {
+                const canvas = document.getElementById(`sparkline-${idx + 1}`);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                
+                const w = canvas.width;
+                const h = canvas.height;
+                const max = Math.max(...pts);
+                const min = Math.min(...pts);
+                const range = max - min === 0 ? 1 : max - min;
+
+                pts.forEach((pt, k) => {
+                    const x = (k / (pts.length - 1)) * w;
+                    const y = h - ((pt - min) / range) * (h - 4) - 2;
+                    if (k === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+
+                ctx.strokeStyle = idx === 4 ? '#FF5C7A' : '#00D68F';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            });
+        }
+
+        // API AJAX: Fetch Dashboard Statistics & Chart Configurations
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch(`${API_BASE}/dataset`);
+                const data = await res.json();
+                if (data.empty) return;
+
+                // Animate Numbers
+                animateNumberCounter('stat-applicants', data.total_rows, 1500);
+                animateNumberCounter('stat-risk', (data.default_rate * 100).toFixed(2) + '%', 1500);
+                animateNumberCounter('stat-fico', Math.round(data.averages.fico), 1500);
+                animateNumberCounter('stat-dti', data.averages.dti.toFixed(2) + '%', 1500);
+
+                // Render Chart 1: Monthly Application Inflow Line chart
+                const inflowCtx = document.getElementById('inflow-chart').getContext('2d');
+                if (inflowChartInstance) inflowChartInstance.destroy();
+                
+                inflowChartInstance = new Chart(inflowCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Applications Volume',
+                            data: [420, 480, 520, 610, 580, 710, 800, 790, 850, 920, 1010, 1080],
+                            borderColor: '#4F8BFF',
+                            borderWidth: 2.5,
+                            fill: true,
+                            backgroundColor: 'rgba(79,139,255,0.05)',
+                            tension: 0.3,
+                            pointBackgroundColor: '#4F8BFF'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8' }
+                        },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#94A3B8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                        }
+                    }
+                });
+
+                // Render Chart 2: Risk distribution pie
+                const pieCtx = document.getElementById('risk-pie-chart').getContext('2d');
+                if (riskPieChartInstance) riskPieChartInstance.destroy();
+                
+                riskPieChartInstance = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                        datasets: [{
+                            data: [50.1, 33.9, 16.0],
+                            backgroundColor: ['rgba(0, 214, 143, 0.7)', 'rgba(255, 176, 32, 0.7)', 'rgba(255, 92, 122, 0.7)'],
+                            borderColor: ['#00D68F', '#FFB020', '#FF5C7A'],
+                            borderWidth: 1.5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94A3B8', font: { size: 10 } }, position: 'bottom' }
+                        },
+                        cutout: '70%'
+                    }
+                });
+
+                // Render Chart 3: FICO distribution histograms
+                const ficoCtx = document.getElementById('fico-chart').getContext('2d');
+                if (ficoChartInstance) ficoChartInstance.destroy();
+                
+                const labels = Object.keys(data.fico_dist).sort();
+                const counts = labels.map(lbl => data.fico_dist[lbl]);
+
+                ficoChartInstance = new Chart(ficoCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.map(l => l.replace('(', '').replace(']', '').replace(', ', '-')),
+                        datasets: [{
+                            label: 'Borrowers Pool Count',
+                            data: counts,
+                            backgroundColor: 'rgba(79, 139, 255, 0.65)',
+                            borderColor: '#4F8BFF',
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8' }
+                        },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#94A3B8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                        }
+                    }
+                });
+
+                // Render Chart 4: Purpose defaults bar chart
+                const purpCtx = document.getElementById('purpose-chart').getContext('2d');
+                if (purposeChartInstance) purposeChartInstance.destroy();
+
+                const purpLabels = Object.keys(data.purpose_dist);
+                const purpVolume = purpLabels.map(p => data.purpose_dist[p]);
+                const purpDefaults = purpLabels.map(p => (data.purpose_defaults[p] * 100).toFixed(1));
+
+                purposeChartInstance = new Chart(purpCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: purpLabels.map(p => p.replace('_', ' ').toUpperCase()),
+                        datasets: [
+                            {
+                                label: 'Loan Volume Size',
+                                data: purpVolume,
+                                backgroundColor: 'rgba(124, 92, 252, 0.4)',
+                                borderColor: '#7C5CFC',
+                                borderWidth: 1.5,
+                                borderRadius: 6,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Default Rate (%)',
+                                data: purpDefaults,
+                                type: 'line',
+                                borderColor: '#FF5C7A',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#FF5C7A',
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94A3B8' } },
+                            tooltip: { backgroundColor: '#0F172A' }
+                        },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#94A3B8' } },
+                            y: { position: 'left', grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#FF5C7A' } }
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Error loading dashboard data:", err);
+            }
+        }
+
+        // API AJAX: Fetch Loan Portfolio specifications
+        async function fetchPortfolioData() {
+            try {
+                const res = await fetch(`${API_BASE}/portfolio`);
+                const data = await res.json();
+                
+                document.getElementById('port-total-value').innerText = '$' + data.total_loan_value.toLocaleString();
+                document.getElementById('port-outstanding').innerText = '$' + data.outstanding_amount.toLocaleString();
+                document.getElementById('port-revenue').innerText = '$' + data.expected_revenue.toLocaleString();
+                document.getElementById('port-recovery').innerText = data.recovery_rate + '%';
+            } catch (err) {
+                console.error("Error loading portfolio metrics:", err);
+            }
+        }
+
+        // API AJAX: Fetch risk warnings
+        async function fetchRiskAlerts() {
+            try {
+                const res = await fetch(`${API_BASE}/risk_alerts`);
+                const alerts = await res.json();
+                
+                const container = document.getElementById('risk-alerts-container');
+                container.innerHTML = '';
+
+                alerts.forEach(al => {
+                    const sevColor = al.severity === 'high' ? 'bg-pdanger/15 text-pdanger border-pdanger/30' : 
+                                     al.severity === 'medium' ? 'bg-pwarning/15 text-pwarning border-pwarning/30' : 
+                                     'bg-pblue/15 text-pblue border-pblue/30';
+                    
+                    container.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl border-l-4 ${al.severity === 'high' ? 'border-l-pdanger' : al.severity === 'medium' ? 'border-l-pwarning' : 'border-l-pblue'} flex justify-between gap-4">
+                            <div class="space-y-1">
+                                <h4 class="font-bold text-xs text-white">${al.title}</h4>
+                                <p class="text-[11px] text-textsec leading-relaxed">${al.message}</p>
+                            </div>
+                            <div class="shrink-0 flex flex-col items-end justify-between">
+                                <span class="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase ${sevColor} border">${al.severity.toUpperCase()}</span>
+                                <span class="text-[9px] text-textsec">${al.timestamp}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error("Error loading risk alerts:", err);
+            }
+        }
+
+        // API AJAX: Fetch and draw prediction logs
+        async function loadPredictionHistory() {
+            try {
+                const res = await fetch(`${API_BASE}/history`);
+                const history = await res.json();
+                
+                const tbody = document.getElementById('history-table-body');
+                tbody.innerHTML = '';
+
+                if (history.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-textsec">No prediction evaluations audited in the active session.</td></tr>`;
+                    return;
+                }
+
+                history.forEach(row => {
+                    const badgeClass = row.risk_indicator === 'Low Risk' ? 'bg-psuccess/15 text-psuccess border-psuccess/20' : 
+                                       row.risk_indicator === 'High Risk' ? 'bg-pdanger/15 text-pdanger border-pdanger/20' : 
+                                       'bg-pwarning/15 text-pwarning border-pwarning/20';
+
+                    const decBadge = row.decision === 'APPROVED' ? 'bg-psuccess/10 text-psuccess border-psuccess/20' : 'bg-pdanger/10 text-pdanger border-pdanger/20';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="p-3 font-mono text-textsec">${row.timestamp}</td>
+                            <td class="p-3 font-bold text-pblue">${row.applicant_id}</td>
+                            <td class="p-3 font-semibold">${row.fico}</td>
+                            <td class="p-3">${row.dti.toFixed(1)}%</td>
+                            <td class="p-3 text-textsec font-medium">${row.purpose.replace('_', ' ').toUpperCase()}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] border font-bold ${badgeClass}">${row.risk_indicator}</span></td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] border font-bold ${decBadge}">${row.decision}</span></td>
+                            <td class="p-3 text-right">
+                                <button onclick="downloadRowReport('${row.timestamp}')" class="text-textsec hover:text-white bg-white/5 border border-bordercol px-2 py-1 rounded-md text-[10px] font-semibold transition">
+                                    <i class="fa-solid fa-download"></i> PDF
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error("Error loading prediction history:", err);
+            }
+        }
+
+        // Download report for a specific row in the logs
+        async function downloadRowReport(timestamp) {
+            try {
+                const historyRes = await fetch(`${API_BASE}/history`);
+                const history = await historyRes.json();
+                const matched = history.find(row => row.timestamp === timestamp);
+                if (!matched) return;
+                
+                triggerToast(`Generating PDF for ${matched.applicant_id}...`, "info");
+
+                const payload = {
+                    credit_policy: 1, // default
+                    purpose: matched.purpose,
+                    int_rate: 0.12, // fallback
+                    installment: 300, // fallback
+                    log_annual_inc: 11.0, // fallback
+                    dti: matched.dti,
+                    fico: matched.fico,
+                    days_with_cr_line: 4000,
+                    revol_bal: 10000,
+                    revol_util: 40,
+                    inq_last_6mths: 1,
+                    delinq_2yrs: 0,
+                    pub_rec: 0,
+                    prediction: matched.decision === 'APPROVED' ? 0 : 1,
+                    probability: matched.decision === 'APPROVED' ? (100 - matched.confidence)/100 : matched.confidence/100,
+                    confidence: matched.confidence,
+                    risk_indicator: matched.risk_indicator
+                };
+
+                const res = await fetch(`${API_BASE}/export_pdf`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error("Report generation failed");
+
+                const blob = await res.blob();
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = `underwriting_report_${matched.applicant_id}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                triggerToast("Report saved to downloads.", "success");
+            } catch (err) {
+                triggerToast("PDF generation failed.", "error");
+            }
+        }
+
+        // Dynamic Number Counter animation
+        function animateNumberCounter(id, targetValue, duration) {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            const isPercent = typeof targetValue === 'string' && targetValue.includes('%');
+            const target = parseFloat(targetValue);
+            
+            let start = 0;
+            const stepTime = Math.abs(Math.floor(duration / 40));
+            const step = target / (duration / stepTime);
+
+            const timer = setInterval(() => {
+                start += step;
+                if (start >= target) {
+                    clearInterval(timer);
+                    el.innerText = isPercent ? target.toFixed(2) + '%' : (target % 1 === 0 ? Math.round(target).toLocaleString() : target.toFixed(4));
+                } else {
+                    el.innerText = isPercent ? start.toFixed(2) + '%' : (target % 1 === 0 ? Math.round(start).toLocaleString() : start.toFixed(4));
+                }
+            }, stepTime);
+        }
+
+        // ========================================
+        // 4-STEP WIZARD LOGIC
+        // ========================================
+        function updateWizardUI() {
+            // Hide all steps first
+            document.querySelectorAll('.step-content').forEach(s => {
+                s.classList.add('hidden');
+                s.classList.remove('block');
+            });
+            // Show active step
+            document.getElementById(`wizard-step-${wizardStep}`).classList.remove('hidden');
+            document.getElementById(`wizard-step-${wizardStep}`).classList.add('block');
+
+            // Update Progress bar width
+            const widths = { 1: '25%', 2: '50%', 3: '75%', 4: '100%' };
+            document.getElementById('wizard-progress-bar').style.width = widths[wizardStep];
+            document.getElementById('wizard-step-label').innerText = `Step ${wizardStep} of 4: ` + 
+                (wizardStep === 1 ? 'Profile Info' : wizardStep === 2 ? 'Income & Leverage' : wizardStep === 3 ? 'Credit Records' : 'Verification Review');
+
+            // Update step labels active highlights
+            for (let i = 1; i <= 4; i++) {
+                const tag = document.getElementById(`step-tag-${i}`);
+                if (i <= wizardStep) {
+                    tag.className = 'text-pblue font-bold';
+                } else {
+                    tag.className = 'text-textsec';
+                }
+            }
+
+            // Button configurations
+            const prevBtn = document.getElementById('wizard-btn-prev');
+            const nextBtn = document.getElementById('wizard-btn-next');
+            
+            if (wizardStep === 1) {
+                prevBtn.classList.add('invisible');
+            } else {
+                prevBtn.classList.remove('invisible');
+            }
+
+            if (wizardStep === 4) {
+                nextBtn.innerHTML = `Submit Evaluation <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>`;
+                nextBtn.className = "bg-gradient-to-r from-pblue to-paccent hover-lift text-white font-extrabold text-sm px-6 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-pblue/25";
+            } else {
+                nextBtn.innerHTML = `Next <i class="fa-solid fa-chevron-right text-xs"></i>`;
+                nextBtn.className = "bg-pblue hover:bg-pblue/80 hover-lift text-white font-bold text-sm px-6 py-2.5 rounded-full flex items-center gap-2";
+            }
+        }
+
+        function wizardPrev() {
+            if (wizardStep > 1) {
+                wizardStep--;
+                updateWizardUI();
+            }
+        }
+
+        function wizardNext() {
+            if (wizardStep < 4) {
+                wizardStep++;
+                // Fill Step 4 Review details dynamically when sliding to step 4
+                if (wizardStep === 4) {
+                    document.getElementById('rev-policy').innerText = document.getElementById('input-credit-policy').value === '1' ? '1 (Meets standards)' : '0 (Does not meet standards)';
+                    document.getElementById('rev-purpose').innerText = document.getElementById('input-purpose').value.replace('_', ' ').toUpperCase();
+                    document.getElementById('rev-rate').innerText = (document.getElementById('input-int-rate').value * 100).toFixed(1) + '%';
+                    document.getElementById('rev-installment').innerText = '$' + document.getElementById('input-installment').value;
+                    document.getElementById('rev-income').innerText = document.getElementById('real-income-val').innerText;
+                    document.getElementById('rev-dti').innerText = parseFloat(document.getElementById('input-dti').value).toFixed(1) + '%';
+                    document.getElementById('rev-fico').innerText = document.getElementById('input-fico').value;
+                    document.getElementById('rev-util').innerText = parseFloat(document.getElementById('input-revol-util').value).toFixed(1) + '%';
+                }
+                updateWizardUI();
+            } else {
+                // Submit Form - Run Prediction
+                submitPrediction();
+            }
+        }
+
+        // AJAX Prediction Submit
+        async function submitPrediction() {
+            // Hide Wizard, show loading skeleton
+            document.getElementById('wizard-form').parentElement.classList.add('hidden');
+            document.getElementById('prediction-skeleton').classList.remove('hidden');
+            document.getElementById('prediction-result').classList.add('hidden');
+
+            const payload = {
+                credit_policy: parseInt(document.getElementById('input-credit-policy').value),
+                purpose: document.getElementById('input-purpose').value,
+                int_rate: parseFloat(document.getElementById('input-int-rate').value),
+                installment: parseFloat(document.getElementById('input-installment').value),
+                log_annual_inc: parseFloat(document.getElementById('input-log-income').value),
+                dti: parseFloat(document.getElementById('input-dti').value),
+                fico: parseInt(document.getElementById('input-fico').value),
+                days_with_cr_line: parseFloat(document.getElementById('input-cr-days').value),
+                revol_bal: parseFloat(document.getElementById('input-revol-bal').value),
+                revol_util: parseFloat(document.getElementById('input-revol-util').value),
+                inq_last_6mths: parseInt(document.getElementById('input-inq').value),
+                delinq_2yrs: parseInt(document.getElementById('input-delinq').value),
+                pub_rec: parseInt(document.getElementById('input-pub-rec').value)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error("Inference failed");
+
+                const result = await res.json();
+                lastPredictionResult = { ...payload, ...result };
+
+                // Simulate slight network delay for premium loader
+                setTimeout(() => {
+                    document.getElementById('prediction-skeleton').classList.add('hidden');
+                    document.getElementById('prediction-result').classList.remove('hidden');
+                    
+                    // Render Result Card Content
+                    const badge = document.getElementById('result-badge');
+                    badge.innerText = result.risk_indicator;
+                    
+                    const decision = document.getElementById('result-decision');
+                    decision.innerText = result.decision;
+
+                    if (result.prediction === 0) {
+                        badge.className = "px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-psuccess/15 border border-psuccess/30 text-psuccess";
+                        decision.className = "text-2xl font-extrabold text-psuccess mt-1";
+                        // trigger confetti
+                        triggerSuccessConfetti();
+                        triggerToast("Applicant approved for standard credit lines!", "success");
+                    } else {
+                        badge.className = "px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pdanger/15 border border-pdanger/30 text-pdanger";
+                        decision.className = "text-2xl font-extrabold text-pdanger mt-1";
+                        triggerToast("Applicant represents elevated default risk.", "error");
+                    }
+
+                    // Update Probability gauge stroke-dashoffset
+                    // dasharray is 251.2 (2 * PI * r)
+                    const prob = result.probability;
+                    const offset = 251.2 - (prob * 251.2);
+                    document.getElementById('risk-circle-fill').style.strokeDashoffset = offset;
+                    document.getElementById('risk-circle-fill').style.stroke = result.prediction === 0 ? '#00D68F' : '#FF5C7A';
+                    document.getElementById('risk-prob-percent').innerText = (prob * 100).toFixed(1) + '%';
+
+                    // Confidence circle
+                    const conf = result.confidence / 100.0;
+                    const confOffset = 251.2 - (conf * 251.2);
+                    document.getElementById('confidence-circle-fill').style.strokeDashoffset = confOffset;
+                    document.getElementById('confidence-percent').innerText = result.confidence.toFixed(1) + '%';
+
+                    // Draw recommendations and key factors list
+                    const actionsUl = document.getElementById('result-actions');
+                    actionsUl.innerHTML = '';
+                    result.recommendation_actions.forEach(act => {
+                        actionsUl.innerHTML += `<li><i class="fa-solid fa-circle-check text-psuccess mr-2"></i> ${act}</li>`;
+                    });
+
+                    const factorsUl = document.getElementById('result-factors');
+                    factorsUl.innerHTML = '';
+                    result.key_factors.forEach(fac => {
+                        const isPos = fac.includes('reduces') || fac.includes('Excellent') || fac.includes('Favorable') || fac.includes('Healthy');
+                        factorsUl.innerHTML += `<li><i class="fa-solid ${isPos ? 'fa-circle-exclamation text-psuccess' : 'fa-circle-exclamation text-pwarning'} mr-2"></i> ${fac}</li>`;
+                    });
+
+                }, 1000);
+
+            } catch (err) {
+                triggerToast("Model prediction request failed.", "error");
+                document.getElementById('prediction-skeleton').classList.add('hidden');
+                document.getElementById('wizard-form').parentElement.classList.remove('hidden');
+            }
+        }
+
+        // Download Report PDF / CSV calling API binary endpoints
+        async function downloadReport(format) {
+            if (!lastPredictionResult) return;
+            
+            triggerToast(`Generating binary ${format.toUpperCase()} asset...`, "info");
+            
+            try {
+                const endpoint = format === 'pdf' ? 'export_pdf' : 'export_csv';
+                const res = await fetch(`${API_BASE}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lastPredictionResult)
+                });
+
+                if (!res.ok) throw new Error("Report generation failed");
+
+                const blob = await res.blob();
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = `underwriting_report_${lastPredictionResult.fico}.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                triggerToast("Report saved to downloads successfully.", "success");
+            } catch (err) {
+                triggerToast("Report download failed.", "error");
+            }
+        }
+    </script>
+</body>
+</html>
